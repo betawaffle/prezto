@@ -1,0 +1,124 @@
+#
+# A theme based on Steve Losh's Extravagant Prompt with vcs_info integration.
+#
+# Authors:
+#   Steve Losh <steve@stevelosh.com>
+#   Bart Trojanowski <bart@jukie.net>
+#   Brian Carper <brian@carper.ca>
+#   steeef <steeef@gmail.com>
+#   Sorin Ionescu <sorin.ionescu@gmail.com>
+#   Andrew Hodges <betawaffle@gmail.com>
+#
+# Screenshots:
+#   http://i.imgur.com/HyRvv.png
+#
+
+function prompt_betawaffle_preexec {
+  _prompt_betawaffle_start_time=$SECONDS
+}
+
+function prompt_betawaffle_precmd {
+  print -Pn '%(?..>> %{%B%F{red}%}FAIL%{%f%b%} %?\n)'
+  local reset='%{%f%%b%}'
+
+  local branch_color='%{%B%F{blue}%}'
+  local branch_format=" on $branch_color%b$reset"
+
+  local action_color='%{%B%F{cyan}%}'
+  local action_format=" ($action_color%a$reset)"
+
+  local state_format=' %c%u'
+
+  # Check for untracked files or updated submodules since vcs_info does not.
+  if [[ -n $(git status --porcelain 2>/dev/null | grep "^??") ]]; then
+    local untracked_color='%{%B%F{red}%}'
+    local untracked_format="$untracked_color?$reset"
+
+    state_format="$state_format$untracked_format"
+  fi
+
+  zstyle ':vcs_info:*:prompt:*' actionformats "$branch_format$action_format$state_format"
+  zstyle ':vcs_info:*:prompt:*' formats "$branch_format$state_format"
+
+  vcs_info 'prompt'
+
+  if (( $+functions[ruby-info] )); then
+    ruby-info
+  fi
+
+  _prompt_betawaffle_timer_result=$(($SECONDS-$_prompt_betawaffle_start_time))
+  if [[ $_prompt_betawaffle_timer_result -gt 10 ]]; then
+    propmt_betawaffle_elapsed_time
+  fi
+  _prompt_betawaffle_start_time=$SECONDS
+}
+
+function propmt_betawaffle_elapsed_time {
+  if [[ $_prompt_betawaffle_timer_result -ge 3600 ]]; then
+    let "timer_hours = $_prompt_betawaffle_timer_result / 3600"
+    let "remainder = $_prompt_betawaffle_timer_result % 3600"
+    let "timer_minutes = $remainder / 60"
+    let "timer_seconds = $remainder % 60"
+    print -P ">> %{%B%F{red}%}${timer_hours}h${timer_minutes}m${timer_seconds}s%{%b%}"
+  elif [[ $_prompt_betawaffle_timer_result -ge 60 ]]; then
+    let "timer_minutes = $_prompt_betawaffle_timer_result / 60"
+    let "timer_seconds = $_prompt_betawaffle_timer_result % 60"
+    print -P ">> %{%B%F{yellow}%}${timer_minutes}m${timer_seconds}s%{%b%}"
+  elif [[ $_prompt_betawaffle_timer_result -gt 5 ]]; then
+    print -P ">> %{%B%F{green}%}${_prompt_betawaffle_timer_result}s%{%b%}"
+  fi
+}
+
+function prompt_betawaffle_setup {
+  setopt LOCAL_OPTIONS
+  unsetopt XTRACE KSH_ARRAYS
+  prompt_opts=(cr percent subst)
+
+  # Load required functions.
+  autoload -Uz add-zsh-hook
+  autoload -Uz vcs_info
+
+  # Add hooks.
+  add-zsh-hook preexec prompt_betawaffle_preexec
+  add-zsh-hook precmd prompt_betawaffle_precmd
+
+  local reset='%{%f%b%}'
+
+  # Formats:
+  #   %b - branchname
+  #   %u - unstagedstr (see below)
+  #   %c - stagedstr (see below)
+  #   %a - action (e.g. rebase-i)
+  #   %R - repository path
+  #   %S - path in the repository
+
+  local unstaged_color="%{%B%F{yellow}%}"
+  local unstaged_format="$unstaged_color!$reset"
+
+  local staged_color="%{%B%F{green}%}"
+  local staged_format="$staged_color*$reset"
+
+  # Set vcs_info parameters.
+  zstyle ':vcs_info:*' enable bzr git hg svn
+  zstyle ':vcs_info:*:prompt:*' check-for-changes true
+  zstyle ':vcs_info:*:prompt:*' unstagedstr "$unstaged_format"
+  zstyle ':vcs_info:*:prompt:*' stagedstr "$staged_format"
+  zstyle ':vcs_info:*:prompt:*' nvcsformats ""
+
+  # Set ruby-info parameters.
+  local ruby_color="%{%B%F{red}%}"
+  zstyle ':prezto:module:ruby:info:version' format "ruby:$ruby_color%v$reset"
+
+  local user_color="%{%B%F{magenta}%}"
+  local host_color="%{%B%F{yellow}%}"
+  local pwd_color="%{%B%F{green}%}"
+
+  # Define prompts.
+  PROMPT="
+$user_color%n$reset at $host_color%m$reset in $pwd_color%~$reset"'$vcs_info_msg_0_'"$reset
+ %# "
+  RPROMPT='$ruby_info[version]'
+}
+
+_prompt_betawaffle_start_time=$SECONDS
+prompt_betawaffle_setup "$@"

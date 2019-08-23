@@ -11,3 +11,15 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
 fi
 
 # Customize to your needs...
+
+function magic-enter {
+  if [[ -z $BUFFER ]]; then
+    zle clear-screen
+  else
+    zle accept-line
+  fi
+}
+zle -N magic-enter
+bindkey "^M" magic-enter
+
+# alias scp="scp -o ControlMaster no"

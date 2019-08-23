@@ -4,6 +4,7 @@
 #
 # Authors:
 #   Sorin Ionescu <sorin.ionescu@gmail.com>
+#   Andrew Hodges <betawaffle@gmail.com>
 #
 
 # function ruby-info {
@@ -23,7 +24,10 @@ if [[ -n "$version_format" ]]; then
   if (( $+commands[rvm-prompt] )); then
     version="$(rvm-prompt)"
   elif (( $+commands[rbenv] )); then
-    version="$(rbenv version-name)"
+    version="$(rbenv version-name 2>/dev/null)"
+    if [[ $? -ne 0 ]]; then
+      version="not-installed"
+    fi
   elif (( $+commands[ruby] )); then
     version="${${$(ruby --version)[(w)1,(w)2]}/ /-}"
   fi
@@ -34,5 +38,3 @@ if [[ -n "$version_format" ]]; then
     ruby_info[version]="$version_formatted"
   fi
 fi
-
-# }

@@ -3,6 +3,7 @@
 #
 # Authors:
 #   Sorin Ionescu <sorin.ionescu@gmail.com>
+#   Andrew Hodges <betawaffle@gmail.com>
 #
 
 #
@@ -194,9 +195,9 @@ if ! zstyle -t ':prezto:module:git:alias' skip 'yes'; then
   alias glS='git log --show-signature'
 
   # Merge (m)
-  alias gm='git merge'
+  alias gm='git merge --no-ff'
   alias gmC='git merge --no-commit'
-  alias gmF='git merge --no-ff'
+  # alias gmF='git merge --no-ff'
   alias gma='git merge --abort'
   alias gmt='git mergetool'
 
@@ -228,8 +229,11 @@ if ! zstyle -t ':prezto:module:git:alias' skip 'yes'; then
   alias gRs='git remote show'
   alias gRb='git-hub-browse'
 
+  # Status (s)
+  alias gs='git status -s'
+
   # Stash (s)
-  alias gs='git stash'
+  # alias gs='git stash'
   alias gsa='git stash apply'
   alias gsx='git stash drop'
   alias gsX='git-stash-clear-interactive'
